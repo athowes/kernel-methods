@@ -1,4 +1,4 @@
-#' Kernel interpolation
+#' Kernel ridge regression
 #' Using representer theorem
 
 library(tidyverse)
@@ -12,9 +12,8 @@ plot <- ggplot(df, aes(x = x, y = y)) +
   geom_point() +
   theme_minimal()
 
-#' Interpolate these points subject to minimising the norm of the function
-#' Note that the "minimising the norm" only applies here such that we can discard
-#' the orthogonal part not in the finite dimensional subspace spanned by our features
+#' Solve the minimiser f in some RKHS H of a sum of squares regularised by a
+#' ridge penalty i.e. sum((f(x_i) - y_i)^2) + lambda ||f||^2
 k <- function(x1, x2) {
   exp(-x1 * x2)
 }
@@ -28,8 +27,10 @@ for(i in 1:5) {
   }
 }
 
+lambda <- 0.1
+
 #' Inversion is O(n^3)
-alpha <- solve(K) %*% y
+alpha <- solve(lambda * diag(5) + K) %*% y
 
 #' Representer
 f <- function(z) {
@@ -45,6 +46,3 @@ for(i in 1:length(z)) {
 
 plot +
   geom_line(data = data.frame(z = z, fz = fz), aes(x = z, y = fz))
-
-#' The norm of alpha is very large here! Better to do some regularlisation
-alpha
